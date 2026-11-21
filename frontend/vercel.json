@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://ember-api.onrender.com/api/:path*"
+      "destination": "https://ember-api-rkvq.onrender.com/api/:path*"
     },
     {
       "source": "/((?!api/).*)",

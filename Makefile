@@ -1,4 +1,4 @@
-.PHONY: db migrate api web test lint health
+.PHONY: db migrate api web test lint health bench
 
 db:
 	docker compose up -d
@@ -21,3 +21,6 @@ lint:
 
 health:
 	curl -s localhost:8000/api/health
+
+bench:
+	.venv/bin/python benchmarks/run.py $(ARGS)

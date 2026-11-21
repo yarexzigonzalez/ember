@@ -1,0 +1,7 @@
+extend = "../backend/pyproject.toml"
+
+[lint.isort]
+known-first-party = ["app"]
+known-third-party = ["alembic"]
+section-order = ["future", "standard-library", "third-party", "local-folder", "first-party"]
+known-local-folder = ["_setup"]

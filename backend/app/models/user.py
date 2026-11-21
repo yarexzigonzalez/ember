@@ -27,6 +27,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(CITEXT, unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)
     display_name: Mapped[str | None] = mapped_column(Text)
+    # IANA name like America/Los_Angeles. Never a fixed offset, DST would break it.
+    timezone: Mapped[str] = mapped_column(Text, nullable=False, server_default="UTC")
     is_demo: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="false")
     weekly_goal: Mapped[int] = mapped_column(Integer, nullable=False, server_default="12")
     ghost_after_days: Mapped[int] = mapped_column(

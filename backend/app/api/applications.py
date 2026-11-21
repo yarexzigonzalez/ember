@@ -23,6 +23,7 @@ from app.services.applications import (
     get_owned,
     update_application,
 )
+from app.services.demo import demo_is_full
 from app.services.listing.optimized import list_applications_optimized
 
 router = APIRouter(prefix="/applications", tags=["applications"])
@@ -69,6 +70,11 @@ def create(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> ApplicationPublic:
+    if user.is_demo and demo_is_full(db, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Demo board is full. It resets tonight, or make your own account.",
+        )
     try:
         return create_application(db, user, body)
     except DuplicateApplicationError:

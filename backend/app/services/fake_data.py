@@ -190,8 +190,16 @@ def generate(
     return apps, events
 
 
-def insert_fake(db: Session, user_id: uuid.UUID, count: int, *, seed: int = 7, today: date) -> int:
-    apps, events = generate(user_id, count, seed=seed, today=today)
+def insert_fake(
+    db: Session,
+    user_id: uuid.UUID,
+    count: int,
+    *,
+    seed: int = 7,
+    today: date,
+    days_back: int = 120,
+) -> int:
+    apps, events = generate(user_id, count, seed=seed, today=today, days_back=days_back)
     for start in range(0, len(apps), 2_000):
         db.execute(insert(Application), apps[start : start + 2_000])
     for start in range(0, len(events), 5_000):

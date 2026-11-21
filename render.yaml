@@ -1,5 +1,5 @@
-# Render blueprint: API + Postgres + nightly demo reset.
-# New > Blueprint in the Render dashboard, point it at this repo.
+# Render blueprint: just the API, on the free plan.
+# Database lives on Neon (free, doesn't expire). Demo reset runs on GitHub Actions (free).
 services:
   - type: web
     name: ember-api
@@ -14,9 +14,7 @@ services:
       - key: PYTHON_VERSION
         value: "3.12.8"
       - key: DATABASE_URL
-        fromDatabase:
-          name: ember-db
-          property: connectionString
+        sync: false # paste your Neon connection string
       - key: ENVIRONMENT
         value: production
       - key: COOKIE_SECURE
@@ -28,27 +26,4 @@ services:
       - key: ANTHROPIC_MODEL
         value: claude-haiku-5-5
       - key: ANTHROPIC_API_KEY
-        sync: false # you paste this one in the dashboard
-
-  - type: cron
-    name: ember-demo-reset
-    runtime: python
-    rootDir: backend
-    plan: starter
-    # 10:00 UTC = 2-3am in LA depending on DST
-    schedule: "0 10 * * *"
-    buildCommand: pip install .
-    startCommand: python -m scripts.reset_demo
-    envVars:
-      - key: PYTHON_VERSION
-        value: "3.12.8"
-      - key: DATABASE_URL
-        fromDatabase:
-          name: ember-db
-          property: connectionString
-
-databases:
-  - name: ember-db
-    plan: free
-    databaseName: ember
-    user: ember
+        sync: false # optional, leave blank for regex-only quick add

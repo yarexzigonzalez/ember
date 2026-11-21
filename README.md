@@ -21,7 +21,7 @@ A job search tracker for one person running their own search. Drag applications 
 | Backend | FastAPI, SQLAlchemy 2.0, Alembic, Pydantic v2, Postgres 16 |
 | Auth | email + password (argon2id), opaque session token in an HttpOnly cookie, only the SHA-256 of it stored |
 | LLM | Anthropic API (Claude Haiku by default), server-side only |
-| Hosting | Vercel (frontend) + Render (API, Postgres, nightly cron) |
+| Hosting | Vercel (frontend) + Render (API) + Neon (Postgres) + GitHub Actions (nightly demo reset), all free tier |
 
 ## How it fits together
 
@@ -30,9 +30,9 @@ flowchart LR
     B[Browser] -->|"/ and /api/*"| V[Vercel]
     V -->|static files| B
     V -->|"rewrite /api/*"| R[FastAPI on Render]
-    R --> P[(Postgres)]
+    R --> P[(Neon Postgres)]
     R -.->|quick add / drafts, optional| A[Anthropic API]
-    C[Nightly cron] -->|reset demo| P
+    C[GitHub Actions, nightly] -->|reset demo| P
 ```
 
 The browser only ever talks to one origin. Vercel serves the React app and forwards `/api/*` to Render, so the session cookie is plain first-party `SameSite=Lax` with no cross-site cookie headaches and basically no CORS.
@@ -88,7 +88,7 @@ Seeds 1k / 10k / 50k applications into throwaway users, times naive vs optimized
 
 ## Deploying
 
-See [docs/DEPLOY.md](docs/DEPLOY.md). Short version: Render blueprint for the API + DB + cron, Vercel for the frontend, then point `vercel.json` at your Render URL.
+See [docs/DEPLOY.md](docs/DEPLOY.md). Short version: Neon for the database, Render blueprint for the API, Vercel for the frontend, then point `vercel.json` at your Render URL. Everything's on free tiers.
 
 ## Project layout
 
@@ -101,7 +101,7 @@ backend/
     schemas/        request/response shapes
     middleware/     rate limiting
   alembic/          migrations
-  scripts/          reset_demo.py (nightly cron)
+  scripts/          reset_demo.py (nightly via github actions)
   tests/
 frontend/src/
   pages/            one per screen

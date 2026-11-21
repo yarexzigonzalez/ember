@@ -1,94 +1,62 @@
 # Deploying
 
-Frontend on **Vercel**, API + Postgres + nightly demo reset on **Render**. Vercel rewrites `/api/*` to Render, so the browser thinks it's all one site. That's what keeps the cookie simple.
+All free, nothing behind a paywall:
+
+- **Neon**: Postgres (free tier, doesn't expire)
+- **Render**: the FastAPI app (free web service)
+- **Vercel**: the React app (Hobby plan), and it proxies `/api/*` to Render so the browser only sees one site
+- **GitHub Actions**: resets the demo account every night
 
 ```
-browser ──> your-app.vercel.app ──(/api/*)──> ember-api.onrender.com ──> Render Postgres
+browser ──> your-app.vercel.app ──(/api/*)──> your-api.onrender.com ──> Neon Postgres
 ```
 
-Budget about 20 minutes the first time.
+Free tier tradeoff: Render free services sleep after 15 min with no traffic and take about a minute to wake up. The demo page shows a "waking up the server" note and retries, so it doesn't look broken.
 
-## Before you start: free tier stuff
+## 1. Neon: the database
 
-These change, so check [render.com/docs/free](https://render.com/docs/free) and [render.com/pricing](https://render.com/pricing) yourself. As of writing:
+1. Sign up at [neon.tech](https://neon.tech) and create a project (any name, Postgres 16, region close to Render's Oregon/Ohio).
+2. Dashboard → **Connect** → copy the connection string. Looks like `postgresql://user:pass@ep-xxx.aws.neon.tech/neondb?sslmode=require`.
 
-- **Free web services sleep after 15 min with no traffic** and take around a minute to wake up. The demo page already shows a "waking up the server" message and retries, so it doesn't look broken. Don't set up a pinger to keep it awake, Render explicitly asks people not to.
-- **Free Postgres expires** after a limited window (Render emails you before it happens) and has no backups. Fine for a portfolio demo. Upgrade it if real people are keeping real data in there.
-- **Cron jobs aren't free.** They bill per minute with a small monthly minimum (about $1). If you want to stay at $0, skip the Render cron and use the GitHub Actions version at the bottom.
-- Vercel's Hobby plan covers the frontend fine.
+The app rewrites `postgresql://` to the psycopg 3 driver itself, so paste it as-is. Tables get created on the API's first boot.
 
-## 1. Render: API, database, cron
+## 2. Render: the API
 
-1. Push the repo to GitHub.
-2. Render dashboard → **New → Blueprint** → pick the repo. It reads [`render.yaml`](../render.yaml) and sets up:
-   - `ember-db`: Postgres
-   - `ember-api`: the FastAPI app (runs `alembic upgrade head` on every boot, no-op when there's nothing new)
-   - `ember-demo-reset`: the nightly cron
-3. It'll ask for `ANTHROPIC_API_KEY`. Paste one in, or leave it blank and Quick Add uses the regex extractor.
-4. Wait for the deploy, then check `https://<your-service>.onrender.com/api/health` → `{"status":"ok"}`.
-5. Seed the demo once so the button works before the first nightly run: open the **ember-demo-reset** cron job → **Trigger Run**. Or open a shell on `ember-api` and run `python -m scripts.reset_demo`.
+1. Render dashboard → **New → Blueprint** → pick this repo. It reads [`render.yaml`](../render.yaml) and makes one free web service.
+2. It asks for two values:
+   - `DATABASE_URL`: the Neon string
+   - `ANTHROPIC_API_KEY`: optional, leave blank and Quick Add uses the regex extractor
+3. Wait for the deploy, then grab the service URL from the top of the page (like `https://ember-api-abcd.onrender.com`).
+4. Open `<that url>/api/health` → should say `{"status":"ok"}`.
+
+## 3. Vercel: the frontend
+
+1. Put your Render URL into [`frontend/vercel.json`](../frontend/vercel.json), in the `/api/:path*` destination. Commit + push.
+2. Vercel → **Add New → Project** → import the repo → **Root Directory: `frontend`** → Deploy. No env vars.
+
+Vercel redeploys on every push to `main`.
+
+## 4. Demo account
+
+1. GitHub repo → **Settings → Secrets and variables → Actions → New repository secret**. Name: `DATABASE_URL`, value: the Neon string.
+2. **Actions** tab → **demo-reset** → **Run workflow**. That seeds the demo right now.
+
+After that it runs every night at 10:00 UTC. GitHub pauses scheduled workflows after 60 days with no repo activity, so push something now and then (or hit Run workflow).
 
 ### Env vars on the API
 
-All of these come from `render.yaml`. This table is here so you know what they do.
-
 | var | value | why |
 |---|---|---|
-| `DATABASE_URL` | from `ember-db` | Render gives `postgresql://...`; the app rewrites it to psycopg 3 itself |
-| `ENVIRONMENT` | `production` | turns off `/docs`, makes the app refuse to boot without secure cookies |
+| `DATABASE_URL` | Neon string | the app switches it to psycopg 3 itself |
+| `ENVIRONMENT` | `production` | turns off `/docs`, refuses to boot without secure cookies |
 | `COOKIE_SECURE` | `true` | cookie only rides over https |
-| `TRUSTED_PROXY_HOPS` | `2` | Vercel + Render's load balancer. See step 4 to confirm |
+| `TRUSTED_PROXY_HOPS` | `2` | Vercel + Render's load balancer, see the IP check below |
 | `LOG_CLIENT_IP` | `false` | flip on briefly to check the rate limiter sees real IPs |
-| `ANTHROPIC_API_KEY` | yours, optional | Quick Add + follow-up drafts |
+| `ANTHROPIC_API_KEY` | optional | Quick Add + follow-up drafts |
 | `ANTHROPIC_MODEL` | `claude-haiku-5-5` | cheap and plenty for field extraction |
-| `PYTHON_VERSION` | `3.12.8` | pin it so Render doesn't surprise you |
+| `PYTHON_VERSION` | `3.12.8` | pinned so Render doesn't surprise you |
 
-Leave `CORS_ORIGINS` unset. Everything is same-origin through the rewrite. If something CORS-shaped breaks, the request is probably going to the Render URL directly instead of through `/api`. Fix that, don't add `*`.
-
-## 2. Vercel: frontend
-
-1. Open [`frontend/vercel.json`](../frontend/vercel.json) and swap `ember-api.onrender.com` for your actual Render hostname if it's different. Commit and push.
-2. Vercel → **Add New → Project** → import the repo.
-3. Set **Root Directory** to `frontend`. It picks up Vite, `npm run build`, and `dist` from `vercel.json`.
-4. No env vars needed. The frontend only calls relative `/api/...` paths.
-5. Deploy.
-
-The two rewrites in `vercel.json`, in order:
-
-```json
-{ "source": "/api/:path*",   "destination": "https://<render>/api/:path*" },
-{ "source": "/((?!api/).*)", "destination": "/index.html" }
-```
-
-First one is the proxy, second one makes refreshing `/app/pulse` work instead of 404ing.
-
-## 3. Nightly demo reset
-
-The `ember-demo-reset` cron runs `python -m scripts.reset_demo` at 10:00 UTC (2-3am in LA). It deletes the demo user's applications and reseeds ~160 fresh ones spread over the last ~75 days, with a different seed each day so it doesn't look frozen.
-
-### Free alternative: GitHub Actions
-
-Delete the cron block from `render.yaml`, then add the Render database's **External** connection string as a repo secret called `DEMO_DATABASE_URL`, and drop this in `.github/workflows/demo-reset.yml`:
-
-```yaml
-name: demo-reset
-on:
-  schedule: [{ cron: "0 10 * * *" }]
-  workflow_dispatch:
-jobs:
-  reset:
-    runs-on: ubuntu-latest
-    defaults: { run: { working-directory: backend } }
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
-      - run: pip install .
-      - run: python -m scripts.reset_demo
-        env: { DATABASE_URL: "${{ secrets.DEMO_DATABASE_URL }}" }
-```
-
-GitHub pauses scheduled workflows on repos with no activity for 60 days, so push something now and then.
+Leave `CORS_ORIGINS` unset. Everything is same-origin through the rewrite. If something CORS-shaped breaks, a request is going to the Render URL directly instead of through `/api`. Fix that, don't add `*`.
 
 ## 4. Post-deploy checks
 
@@ -134,9 +102,10 @@ Heads up: someone who finds the raw Render URL can skip Vercel and type their ow
 | symptom | likely cause |
 |---|---|
 | API won't boot, logs say `COOKIE_SECURE has to be true` | that's on purpose, set `COOKIE_SECURE=true` |
+| Signup/login does nothing or errors | `vercel.json` isn't pointing at *your* Render URL, or the API is still asleep/deploying |
 | Logged in, then immediately logged out | cookie not sticking. Check `Secure` is on and you're on https, and that calls go through `/api` on the vercel domain |
 | Refreshing a page like `/app/ghost` 404s | the SPA fallback rewrite is missing from `vercel.json` |
 | Everyone gets 429'd together | `TRUSTED_PROXY_HOPS` is too low, so the limiter is keying on a proxy IP. Run the IP check above |
-| Demo button says "not seeded yet" | run the reset cron once manually |
+| Demo button says "not seeded yet" | run the demo-reset workflow once (Actions tab) |
 | Quick Add always says "regex pass" | no `ANTHROPIC_API_KEY`, or the key is bad (check logs for `llm extract fell back`) |
 | First request takes ~a minute | free tier waking up, that's normal |

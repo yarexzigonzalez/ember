@@ -9,6 +9,7 @@ from app.api.auth import router as auth_router
 from app.api.extract import router as extract_router
 from app.api.ghost import router as ghost_router
 from app.api.health import router as health_router
+from app.api.sprint import router as sprint_router
 from app.config import settings
 
 logging.basicConfig(level=logging.INFO)
@@ -39,4 +40,5 @@ api.include_router(auth_router)
 api.include_router(applications_router)
 api.include_router(extract_router)
 api.include_router(ghost_router)
+api.include_router(sprint_router)
 app.include_router(api)

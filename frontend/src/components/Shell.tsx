@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 const nav = [
   { to: '/app', label: 'Pipeline' },
   { to: '/app/ghost', label: 'Ghost Radar' },
+  { to: '/app/settings', label: 'Settings' },
 ]
 
 export function Shell({ children }: { children: ReactNode }) {

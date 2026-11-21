@@ -4,6 +4,7 @@ import { Columns3, Plus, Rows3, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 
 import { ApplicationForm } from '@/components/pipeline/ApplicationForm'
+import { SprintRing } from '@/components/SprintRing'
 import { Board } from '@/components/pipeline/Board'
 import { QuickAdd } from '@/components/pipeline/QuickAdd'
 import { Table } from '@/components/pipeline/Table'
@@ -71,6 +72,8 @@ export function Pipeline() {
           </Button>
         </div>
       </div>
+
+      <SprintRing />
 
       <motion.div
         key={view}

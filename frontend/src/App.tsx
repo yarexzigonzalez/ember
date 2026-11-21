@@ -7,6 +7,7 @@ import { Ghost } from '@/pages/Ghost'
 import { Landing } from '@/pages/Landing'
 import { Login } from '@/pages/Login'
 import { Pipeline } from '@/pages/Pipeline'
+import { Settings } from '@/pages/Settings'
 import { Signup } from '@/pages/Signup'
 
 function AppLayout() {
@@ -29,6 +30,7 @@ export default function App() {
       <Route path="/app" element={<AppLayout />}>
         <Route index element={<Pipeline />} />
         <Route path="ghost" element={<Ghost />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -20,8 +20,8 @@ export function refreshPipelineData(queryClient: QueryClient) {
 async function fetchAll(): Promise<Application[]> {
   // Board wants everything. Walk the pages; most people have a few hundred rows tops.
   const rows: Application[] = []
-  for (let page = 1; page < 200; page++) {
-    const batch = await api<ApplicationList>(`/applications?page=${page}&page_size=100`)
+  for (let page = 1; page < 100; page++) {
+    const batch = await api<ApplicationList>(`/applications?page=${page}&page_size=500`)
     rows.push(...batch.items)
     if (rows.length >= batch.total || batch.items.length === 0) break
   }

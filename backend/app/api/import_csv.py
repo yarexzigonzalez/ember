@@ -8,7 +8,7 @@ from app.deps import get_current_user
 from app.middleware.rate_limit import rate_limit
 from app.models.user import User
 from app.services.exporting import export_rows
-from app.services.importing.naive import import_naive
+from app.services.importing.optimized import import_optimized
 from app.services.importing.parse import MAX_BYTES, CsvTooBig, parse_csv
 
 router = APIRouter(tags=["import"])
@@ -48,7 +48,7 @@ def import_csv(
         parsed = parse_csv(body.csv, max_rows=DEMO_MAX_ROWS if user.is_demo else 5_000)
     except (CsvTooBig, ValueError) as error:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from None
-    result = import_naive(db, user, parsed)
+    result = import_optimized(db, user, parsed)
     return ImportOut(
         added=result.added,
         skipped=result.skipped,

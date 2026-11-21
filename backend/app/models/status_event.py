@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Text, func, text
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Text, func, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,6 +20,7 @@ class StatusEvent(Base):
 
     __tablename__ = "status_events"
     __table_args__ = (
+        Index("ix_status_events_user_occurred_at", "user_id", "occurred_at"),
         CheckConstraint(
             "to_status IN ('saved', 'applied', 'oa', 'interview', 'offer', 'rejected', 'ghosted')",
             name="to_status",

@@ -9,6 +9,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Text,
     UniqueConstraint,
     func,
@@ -29,6 +30,11 @@ class Application(Base):
     __tablename__ = "applications"
     __table_args__ = (
         UniqueConstraint("user_id", "dedupe_key", name="uq_applications_user_id_dedupe_key"),
+        Index("ix_applications_user_status", "user_id", "status"),
+        Index("ix_applications_user_applied_at", "user_id", "applied_at"),
+        Index("ix_applications_user_source", "user_id", "source"),
+        Index("ix_applications_user_last_status_at", "user_id", "last_status_at"),
+        Index("ix_applications_user_updated_at", "user_id", "updated_at"),
         CheckConstraint(
             "status IN ('saved', 'applied', 'oa', 'interview', 'offer', 'rejected', 'ghosted')",
             name="status",

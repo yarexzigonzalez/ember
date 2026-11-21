@@ -20,6 +20,8 @@ from app.services.llm import anthropic_client
 logger = logging.getLogger("ember.ghost")
 
 OPEN_STATUSES = ("saved", "applied", "oa", "interview")
+# If 200+ things have gone quiet, the 201st isn't the one you'll follow up on.
+MAX_SHOWN = 200
 
 
 @dataclass
@@ -39,6 +41,7 @@ def ghost_candidates(db: Session, user: User, now: datetime | None = None) -> li
             Application.last_status_at <= cutoff,
         )
         .order_by(Application.last_status_at.asc())
+        .limit(MAX_SHOWN)
     ).all()
     return [GhostCandidate(row, (now - row.last_status_at).days) for row in rows]
 

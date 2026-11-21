@@ -14,17 +14,19 @@ from app.middleware.rate_limit import limit_auth_endpoints
 from app.models.session import Session as AuthSession
 from app.models.user import User
 from app.schemas.auth import LoginRequest, RegisterRequest, SettingsUpdate, UserPublic
+from app.services.demo import DEMO_SESSION_SECONDS, get_demo_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def _issue_session(db: DbSession, user: User) -> str:
+def _issue_session(db: DbSession, user: User, ttl_seconds: int | None = None) -> str:
     raw_token = new_session_token()
+    ttl = ttl_seconds or settings.session_ttl_seconds
     db.add(
         AuthSession(
             user_id=user.id,
             token_hash=hash_session_token(raw_token),
-            expires_at=datetime.now(UTC) + timedelta(seconds=settings.session_ttl_seconds),
+            expires_at=datetime.now(UTC) + timedelta(seconds=ttl),
         )
     )
     db.commit()
@@ -77,6 +79,19 @@ def login(
         )
 
     set_session_cookie(response, _issue_session(db, user))
+    return user
+
+
+@router.post("/demo", response_model=UserPublic, dependencies=[Depends(limit_auth_endpoints)])
+def demo_login(response: Response, db: DbSession = Depends(get_db)) -> User:
+    """One click, no password, straight into the shared demo account."""
+    user = get_demo_user(db)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Demo isn't set up yet")
+    raw = _issue_session(db, user, ttl_seconds=DEMO_SESSION_SECONDS)
+    # short-lived cookie to match the short-lived session
+    set_session_cookie(response, raw, max_age=DEMO_SESSION_SECONDS)
+    response.headers["Cache-Control"] = "no-store"
     return user
 
 

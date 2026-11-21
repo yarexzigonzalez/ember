@@ -7,6 +7,7 @@ from app.db import get_db
 from app.deps import get_current_user
 from app.middleware.rate_limit import rate_limit
 from app.models.user import User
+from app.services.demo import demo_is_full
 from app.services.exporting import export_rows
 from app.services.importing.optimized import import_optimized
 from app.services.importing.parse import MAX_BYTES, CsvTooBig, parse_csv
@@ -44,6 +45,8 @@ def import_csv(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> ImportOut:
+    if user.is_demo and demo_is_full(db, user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Demo board is full")
     try:
         parsed = parse_csv(body.csv, max_rows=DEMO_MAX_ROWS if user.is_demo else 5_000)
     except (CsvTooBig, ValueError) as error:

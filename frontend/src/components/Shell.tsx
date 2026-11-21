@@ -60,6 +60,15 @@ export function Shell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
+      {session.data?.is_demo && (
+        <div className="border-b border-gold/30 bg-gold/10 px-4 py-2 text-center text-xs text-gold">
+          Shared demo account. Poke around, it resets every night.{' '}
+          <Link to="/signup" className="underline">
+            Make your own
+          </Link>{' '}
+          to keep stuff.
+        </div>
+      )}
       <main className="mx-auto max-w-7xl px-4 py-6 md:px-8">{children}</main>
     </div>
   )

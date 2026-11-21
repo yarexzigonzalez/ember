@@ -1,4 +1,4 @@
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -38,6 +38,16 @@ class Settings(BaseSettings):
     anthropic_timeout_seconds: float = 20.0
     extract_rate_limit: int = Field(default=20, ge=1)
     extract_rate_window_seconds: int = Field(default=10 * 60, ge=1)
+
+    @field_validator("database_url")
+    @classmethod
+    def use_psycopg3(cls, value: str) -> str:
+        """Render (and most hosts) hand out postgres:// or postgresql:// URLs.
+        SQLAlchemy needs to be told to use psycopg 3, so swap the scheme."""
+        for prefix in ("postgres://", "postgresql://"):
+            if value.startswith(prefix):
+                return "postgresql+psycopg://" + value[len(prefix) :]
+        return value
 
     @property
     def is_production(self) -> bool:

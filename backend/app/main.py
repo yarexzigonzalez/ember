@@ -23,7 +23,14 @@ async def lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(title="Ember", lifespan=lifespan)
+# No public swagger page in prod. Locally it's at /docs.
+app = FastAPI(
+    title="Ember",
+    lifespan=lifespan,
+    docs_url=None if settings.is_production else "/docs",
+    redoc_url=None,
+    openapi_url=None if settings.is_production else "/openapi.json",
+)
 
 # Prod is same-origin through the Vercel rewrite, so this usually never runs.
 if settings.cors_origin_list:

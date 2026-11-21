@@ -27,10 +27,12 @@ const empty: ApplicationInput = {
 
 export function ApplicationForm({
   initial,
+  prefill,
   onSaved,
   onCancel,
 }: {
   initial?: Application | null
+  prefill?: Partial<ApplicationInput>
   onSaved: () => void
   onCancel: () => void
 }) {
@@ -47,8 +49,9 @@ export function ApplicationForm({
           role_type: initial.role_type ?? '',
           notes: initial.notes ?? '',
           applied_at: initial.applied_at,
+          requirements: initial.requirements,
         }
-      : empty,
+      : { ...empty, ...prefill },
   )
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -69,6 +72,7 @@ export function ApplicationForm({
       seniority: form.seniority || null,
       role_type: form.role_type || null,
       notes: form.notes || null,
+      requirements: form.requirements ?? [],
       // blank means "let the server stamp it when it hits Applied"
       applied_at: form.applied_at || null,
     }

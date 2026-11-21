@@ -1,10 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Columns3, Plus, Rows3 } from 'lucide-react'
+import { Columns3, Plus, Rows3, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 
 import { ApplicationForm } from '@/components/pipeline/ApplicationForm'
 import { Board } from '@/components/pipeline/Board'
+import { QuickAdd } from '@/components/pipeline/QuickAdd'
 import { Table } from '@/components/pipeline/Table'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
@@ -22,6 +23,7 @@ export function Pipeline() {
   )
   const [editing, setEditing] = useState<Application | null>(null)
   const [adding, setAdding] = useState(false)
+  const [quick, setQuick] = useState(false)
 
   function pickView(next: View) {
     setView(next)
@@ -31,6 +33,7 @@ export function Pipeline() {
   function closeForm() {
     setEditing(null)
     setAdding(false)
+    setQuick(false)
   }
 
   function saved() {
@@ -60,6 +63,9 @@ export function Pipeline() {
               <Rows3 size={14} /> Table
             </ViewButton>
           </div>
+          <Button variant="quiet" onClick={() => setQuick(true)}>
+            <Sparkles size={16} /> Quick add
+          </Button>
           <Button onClick={() => setAdding(true)}>
             <Plus size={16} /> Add job
           </Button>
@@ -101,6 +107,14 @@ export function Pipeline() {
           onSaved={saved}
           onCancel={closeForm}
         />
+      </Dialog>
+
+      <Dialog
+        open={quick}
+        onOpenChange={(open) => !open && closeForm()}
+        title="Quick add from a posting"
+      >
+        <QuickAdd onSaved={saved} onCancel={closeForm} />
       </Dialog>
     </div>
   )

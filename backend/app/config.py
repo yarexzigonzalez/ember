@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     # Flip on for a bit after deploy to see what IP the limiter actually uses.
     log_client_ip: bool = False
 
+    # Quick Add. No key = heuristic only, which works fine, just dumber.
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-haiku-5-5"
+    anthropic_timeout_seconds: float = 20.0
+    extract_rate_limit: int = Field(default=20, ge=1)
+    extract_rate_window_seconds: int = Field(default=10 * 60, ge=1)
+
     @property
     def is_production(self) -> bool:
         return self.environment == "production"

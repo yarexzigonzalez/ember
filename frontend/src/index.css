@@ -1,0 +1,61 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Fraunces', ui-serif, Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --color-ink: #14100f;
+  --color-raised: #1d1816;
+  --color-raised-2: #261f1c;
+  --color-line: #3c312c;
+  --color-ember: #d2691e;
+  --color-ember-2: #e08a45;
+  --color-oxblood: #6b1e2e;
+  --color-rose: #c98b9b;
+  --color-gold: #c9a227;
+  --color-moss: #6f7d4f;
+  --color-cream: #ede3d3;
+  --color-tan: #b7a899;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ink);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+}
+
+body::before {
+  content: '';
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 15% -10%, rgb(210 105 30 / 0.16), transparent 42%),
+    radial-gradient(ellipse at 100% 0%, rgb(107 30 46 / 0.22), transparent 36%);
+  z-index: 0;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+::selection {
+  background: rgb(210 105 30 / 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

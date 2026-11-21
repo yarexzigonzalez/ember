@@ -4,6 +4,7 @@ import { RequireAuth } from '@/components/RequireAuth'
 import { Shell } from '@/components/Shell'
 import { DemoEntry } from '@/pages/DemoEntry'
 import { Ghost } from '@/pages/Ghost'
+import { Import } from '@/pages/Import'
 import { Landing } from '@/pages/Landing'
 import { Login } from '@/pages/Login'
 import { Pipeline } from '@/pages/Pipeline'
@@ -32,6 +33,7 @@ export default function App() {
         <Route index element={<Pipeline />} />
         <Route path="pulse" element={<Pulse />} />
         <Route path="ghost" element={<Ghost />} />
+        <Route path="import" element={<Import />} />
         <Route path="settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

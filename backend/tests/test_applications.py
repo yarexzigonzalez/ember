@@ -5,14 +5,14 @@ from app.db import SessionLocal
 
 
 def _login(client: TestClient, user: dict[str, str]) -> None:
-    response = client.post("/auth/login", json=user)
+    response = client.post("/api/auth/login", json=user)
     assert response.status_code == 200
 
 
 def test_crud_and_status_history(client: TestClient, registered_user: dict[str, str]) -> None:
     _login(client, registered_user)
     created = client.post(
-        "/applications",
+        "/api/applications",
         json={
             "company": "Stripe",
             "role": "Backend Intern",
@@ -27,17 +27,17 @@ def test_crud_and_status_history(client: TestClient, registered_user: dict[str, 
     assert body["applied_at"] is not None
     app_id = body["id"]
 
-    listed = client.get("/applications")
+    listed = client.get("/api/applications")
     assert listed.status_code == 200
     assert listed.json()["total"] == 1
 
-    moved = client.patch(f"/applications/{app_id}", json={"status": "oa"})
+    moved = client.patch(f"/api/applications/{app_id}", json={"status": "oa"})
     assert moved.status_code == 200
     assert moved.json()["status"] == "oa"
 
-    gone = client.delete(f"/applications/{app_id}")
+    gone = client.delete(f"/api/applications/{app_id}")
     assert gone.status_code == 204
-    assert client.get(f"/applications/{app_id}").status_code == 404
+    assert client.get(f"/api/applications/{app_id}").status_code == 404
 
 
 def test_duplicate_company_role_link(client: TestClient, registered_user: dict[str, str]) -> None:
@@ -47,8 +47,8 @@ def test_duplicate_company_role_link(client: TestClient, registered_user: dict[s
         "role": "New Grad",
         "posting_url": "https://notion.so/jobs/2",
     }
-    assert client.post("/applications", json=payload).status_code == 201
-    again = client.post("/applications", json={**payload, "company": " notion "})
+    assert client.post("/api/applications", json=payload).status_code == 201
+    again = client.post("/api/applications", json={**payload, "company": " notion "})
     assert again.status_code == 409
 
 
@@ -57,29 +57,29 @@ def test_other_user_cannot_see_rows(
 ) -> None:
     _login(client, registered_user)
     created = client.post(
-        "/applications",
+        "/api/applications",
         json={"company": "Figma", "role": "Intern", "posting_url": "https://figma.com/j"},
     )
     assert created.status_code == 201
     app_id = created.json()["id"]
-    assert client.post("/auth/logout").status_code == 204
+    assert client.post("/api/auth/logout").status_code == 204
 
     other = client.post(
-        "/auth/register",
+        "/api/auth/register",
         json={"email": f"other-{unique_email}", "password": "another-password"},
     )
     assert other.status_code == 201
     assert (
         client.post(
-            "/auth/login",
+            "/api/auth/login",
             json={"email": f"other-{unique_email}", "password": "another-password"},
         ).status_code
         == 200
     )
-    assert client.get("/applications").json()["total"] == 0
-    assert client.get(f"/applications/{app_id}").status_code == 404
-    assert client.patch(f"/applications/{app_id}", json={"status": "offer"}).status_code == 404
-    client.post("/auth/logout")
+    assert client.get("/api/applications").json()["total"] == 0
+    assert client.get(f"/api/applications/{app_id}").status_code == 404
+    assert client.patch(f"/api/applications/{app_id}", json={"status": "offer"}).status_code == 404
+    client.post("/api/auth/logout")
     db = SessionLocal()
     try:
         db.execute(
@@ -99,18 +99,20 @@ def test_search_filter_and_sort(client: TestClient, registered_user: dict[str, s
         {"company": "Stripe", "role": "Data Intern", "source": "Handshake", "status": "saved"},
     ]
     for row in rows:
-        assert client.post("/applications", json=row).status_code == 201
+        assert client.post("/api/applications", json=row).status_code == 201
 
-    found = client.get("/applications", params={"q": "stripe", "sort": "role", "direction": "asc"})
+    found = client.get(
+        "/api/applications", params={"q": "stripe", "sort": "role", "direction": "asc"}
+    )
     assert found.status_code == 200
     payload = found.json()
     assert payload["total"] == 2
     assert [item["role"] for item in payload["items"]] == ["Backend Intern", "Data Intern"]
 
-    saved = client.get("/applications", params={"status": "saved", "source": "Referral"})
+    saved = client.get("/api/applications", params={"status": "saved", "source": "Referral"})
     assert saved.json()["total"] == 1
     assert saved.json()["items"][0]["company"] == "Airbnb"
 
 
 def test_applications_require_login(client: TestClient) -> None:
-    assert client.get("/applications").status_code == 401
+    assert client.get("/api/applications").status_code == 401

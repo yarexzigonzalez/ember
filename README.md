@@ -2,7 +2,15 @@
 
 A job search tracker for one person running their own search. Drag applications across a board, paste a job post and get the fields pulled out for you, see which jobs have gone quiet, and find out what's actually getting replies.
 
-**Live demo:** hit "View live demo" on the landing page. It's a shared account with a couple months of fake-but-realistic data, and it resets every night.
+**Live:** [ember-brown-ten.vercel.app](https://ember-brown-ten.vercel.app). Hit **View live demo** to get in without signing up. It's a shared account with a couple months of fake-but-realistic data, and it resets every night. First load can take ~a minute if the free-tier server was asleep.
+
+![Pipeline board](docs/screenshots/board.png)
+
+| Market Pulse | Ghost Radar |
+|---|---|
+| ![Market Pulse analytics](docs/screenshots/pulse.png) | ![Ghost Radar](docs/screenshots/ghost.png) |
+| **Table view** (virtualized, stays smooth at 10k+ rows) | **On a phone** |
+| ![Table view](docs/screenshots/table.png) | <img src="docs/screenshots/mobile.png" alt="Pipeline on mobile" width="260"> |
 
 ## What it does
 

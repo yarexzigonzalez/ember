@@ -78,6 +78,7 @@ class Application(Base):
     status_events: Mapped[list[StatusEvent]] = relationship(
         back_populates="application",
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
 

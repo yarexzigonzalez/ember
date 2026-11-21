@@ -8,6 +8,16 @@ dependencies = [
   "alembic>=1.13,<2",
   "psycopg[binary]>=3.2,<4",
   "pydantic-settings>=2.0,<3",
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.32,<1",
+  "argon2-cffi>=23,<26",
+  "email-validator>=2.0,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8,<9",
+  "httpx>=0.27,<1",
 ]
 
 [build-system]
@@ -23,3 +33,7 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

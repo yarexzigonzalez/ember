@@ -42,5 +42,14 @@ class User(Base):
         onupdate=func.now(),
     )
 
-    sessions: Mapped[list[Session]] = relationship(back_populates="user")
-    applications: Mapped[list[Application]] = relationship(back_populates="user")
+    # passive_deletes: the FK is ON DELETE CASCADE, so don't null out user_id first.
+    sessions: Mapped[list[Session]] = relationship(
+        back_populates="user",
+        passive_deletes=True,
+        cascade="all, delete-orphan",
+    )
+    applications: Mapped[list[Application]] = relationship(
+        back_populates="user",
+        passive_deletes=True,
+        cascade="all, delete-orphan",
+    )

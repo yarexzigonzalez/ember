@@ -153,7 +153,7 @@ export function Table({ onOpen }: { onOpen: (row: Application) => void }) {
                 <button
                   type="button"
                   onClick={() => toggleSort(column.key!)}
-                  className="inline-flex items-center gap-1 hover:text-cream"
+                  className="inline-flex items-center gap-1 uppercase hover:text-cream"
                 >
                   {column.label}
                   {sort === column.key &&

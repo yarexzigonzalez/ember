@@ -26,7 +26,7 @@ def unique_email() -> str:
 def registered_user(client: TestClient, unique_email: str) -> dict[str, str]:
     password = "correct-horse"
     response = client.post(
-        "/auth/register",
+        "/api/auth/register",
         json={"email": unique_email, "password": password, "display_name": "Ada"},
     )
     assert response.status_code == 201, response.text

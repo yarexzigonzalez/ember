@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.deps import get_current_user
 from app.models.user import User
-from app.services.analytics.naive import market_pulse_naive
+from app.services.analytics.optimized import market_pulse_optimized
 from app.services.analytics.report import Bucket, PulseReport
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
@@ -49,4 +49,4 @@ def to_out(report: PulseReport) -> PulseOut:
 
 @router.get("/pulse", response_model=PulseOut)
 def pulse(db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> PulseOut:
-    return to_out(market_pulse_naive(db, user.id, user.timezone))
+    return to_out(market_pulse_optimized(db, user.id, user.timezone))

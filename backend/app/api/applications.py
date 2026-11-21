@@ -23,7 +23,7 @@ from app.services.applications import (
     get_owned,
     update_application,
 )
-from app.services.listing.naive import list_applications_naive
+from app.services.listing.optimized import list_applications_optimized
 
 router = APIRouter(prefix="/applications", tags=["applications"])
 
@@ -35,7 +35,7 @@ def _list_params(
     sort: SortField = Query(default="updated_at"),
     direction: SortDirection = Query(default="desc"),
     page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=50, ge=1, le=100),
+    page_size: int = Query(default=50, ge=1, le=500),
 ) -> ApplicationListParams:
     return ApplicationListParams(
         q=q,
@@ -54,7 +54,7 @@ def list_applications(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> ApplicationList:
-    items, total = list_applications_naive(db, user.id, params)
+    items, total = list_applications_optimized(db, user.id, params)
     return ApplicationList(
         items=items,
         total=total,

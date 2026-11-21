@@ -35,7 +35,7 @@ export function Ghost() {
   const items = ghosts.data?.items ?? []
 
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       <div>
         <h1 className="font-serif text-4xl">Ghost Radar</h1>
         <p className="mt-1 max-w-xl text-sm text-tan">

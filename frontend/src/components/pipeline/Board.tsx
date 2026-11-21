@@ -97,7 +97,7 @@ function Column({
     <section
       ref={setNodeRef}
       className={cn(
-        'flex min-h-[60vh] flex-col rounded-2xl border border-line bg-raised/70 p-2 transition-colors',
+        'flex min-h-[60vh] min-w-0 flex-col rounded-2xl border border-line bg-raised/70 p-2 transition-colors',
         isOver && 'border-ember/60 bg-raised-2/80',
       )}
     >
@@ -108,7 +108,8 @@ function Column({
         </span>
         <span className="font-mono text-[11px] text-tan/70">{count}</span>
       </header>
-      <div className="grid gap-2">{children}</div>
+      {/* grid-cols-1 = minmax(0,1fr), so long titles truncate instead of stretching the card */}
+      <div className="grid grid-cols-1 gap-2">{children}</div>
     </section>
   )
 }
@@ -143,9 +144,9 @@ function Card({
     >
       <p className="truncate font-medium text-cream">{row.company}</p>
       <p className="truncate text-tan">{row.role}</p>
-      <p className="mt-2 flex justify-between font-mono text-[10px] text-tan/70">
+      <p className="mt-2 flex justify-between gap-2 font-mono text-[10px] text-tan/70">
         <span className="truncate">{row.source ?? ''}</span>
-        <span>{age === 0 ? 'today' : `${age}d`}</span>
+        <span className="shrink-0">{age === 0 ? 'today' : `${age}d`}</span>
       </p>
     </button>
   )

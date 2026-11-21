@@ -45,7 +45,7 @@ export function Pipeline() {
   const count = all.data?.length ?? 0
 
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-serif text-4xl">Pipeline</h1>
@@ -55,7 +55,7 @@ export function Pipeline() {
               : `${count} ${count === 1 ? 'job' : 'jobs'} in play`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex rounded-full border border-line bg-raised p-0.5">
             <ViewButton active={view === 'board'} onClick={() => pickView('board')}>
               <Columns3 size={14} /> Board
@@ -76,6 +76,7 @@ export function Pipeline() {
       <SprintRing />
 
       <motion.div
+        className="min-w-0"
         key={view}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}

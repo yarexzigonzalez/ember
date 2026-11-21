@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 
 const nav = [
   { to: '/app', label: 'Pipeline' },
+  { to: '/app/pulse', label: 'Market Pulse' },
   { to: '/app/ghost', label: 'Ghost Radar' },
   { to: '/app/settings', label: 'Settings' },
 ]

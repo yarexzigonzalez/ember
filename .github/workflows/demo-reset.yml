@@ -1,0 +1,36 @@
+name: demo-reset
+
+# wipes + reseeds the shared demo account every night. free, unlike a render cron.
+on:
+  schedule:
+    - cron: "0 10 * * *" # 2-3am in LA
+  workflow_dispatch: # "Run workflow" button for the first seed
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: skip if the db secret isn't set yet
+        id: check
+        working-directory: .
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "no DATABASE_URL secret, skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.check.outputs.skip != 'true'
+      - uses: actions/setup-python@v5
+        if: steps.check.outputs.skip != 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+      - if: steps.check.outputs.skip != 'true'
+        run: pip install .
+      - if: steps.check.outputs.skip != 'true'
+        run: alembic upgrade head && python -m scripts.reset_demo

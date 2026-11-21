@@ -6,7 +6,6 @@ mean a paste that got the fallback once would never get the real model later.
 
 import hashlib
 import logging
-from functools import lru_cache
 from typing import Literal
 
 from sqlalchemy.dialects.postgresql import insert
@@ -16,6 +15,7 @@ from app.config import settings
 from app.models.extraction_cache import ExtractionCache
 from app.services.extract.heuristic import HeuristicExtractor
 from app.services.extract.protocol import ExtractedJob, ExtractionFailed, JobExtractor
+from app.services.llm import anthropic_client
 
 logger = logging.getLogger("ember.extract")
 
@@ -28,19 +28,12 @@ def input_hash(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-@lru_cache(maxsize=1)
 def default_llm() -> JobExtractor | None:
-    if not settings.anthropic_api_key:
+    client = anthropic_client()
+    if client is None:
         return None
-    import anthropic
-
     from app.services.extract.anthropic_provider import AnthropicExtractor
 
-    client = anthropic.Anthropic(
-        api_key=settings.anthropic_api_key,
-        timeout=settings.anthropic_timeout_seconds,
-        max_retries=1,
-    )
     return AnthropicExtractor(client, settings.anthropic_model)
 
 

@@ -116,3 +116,18 @@ def test_search_filter_and_sort(client: TestClient, registered_user: dict[str, s
 
 def test_applications_require_login(client: TestClient) -> None:
     assert client.get("/api/applications").status_code == 401
+
+
+def test_applied_at_uses_the_users_local_date(client: TestClient, unique_email: str) -> None:
+    # Kiribati is UTC+14, so its calendar date is ahead of UTC most of the day.
+    from app.services.calendar import user_today
+
+    client.post(
+        "/api/auth/register",
+        json={"email": unique_email, "password": "long-enough", "timezone": "Pacific/Kiritimati"},
+    )
+    client.post("/api/auth/login", json={"email": unique_email, "password": "long-enough"})
+    created = client.post(
+        "/api/applications", json={"company": "Far East", "role": "Eng", "status": "applied"}
+    ).json()
+    assert created["applied_at"] == user_today("Pacific/Kiritimati").isoformat()

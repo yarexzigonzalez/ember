@@ -8,6 +8,7 @@ from app.models.enums import ApplicationStatus
 from app.models.status_event import StatusEvent
 from app.models.user import User
 from app.schemas.application import ApplicationCreate, ApplicationUpdate
+from app.services.calendar import local_date
 from app.services.dedupe import make_dedupe_key
 
 
@@ -15,9 +16,10 @@ class DuplicateApplicationError(Exception):
     pass
 
 
-def _touch_applied_at(application: Application, when: datetime) -> None:
+def _touch_applied_at(application: Application, user: User, when: datetime) -> None:
+    # First time it hits Applied, stamp the user's local date, not the UTC one.
     if application.status == ApplicationStatus.APPLIED and application.applied_at is None:
-        application.applied_at = when.date()
+        application.applied_at = local_date(when, user.timezone)
 
 
 def _add_event(
@@ -76,7 +78,7 @@ def create_application(db: Session, user: User, body: ApplicationCreate) -> Appl
         applied_at=body.applied_at,
         last_status_at=now,
     )
-    _touch_applied_at(application, now)
+    _touch_applied_at(application, user, now)
     db.add(application)
     db.flush()
     _add_event(db, application, None, application.status, now)
@@ -130,7 +132,7 @@ def update_application(
         application.status = data["status"].value
         if application.status != previous:
             _add_event(db, application, previous, application.status, now)
-    _touch_applied_at(application, now)
+    _touch_applied_at(application, user, now)
     db.commit()
     db.refresh(application)
     return application

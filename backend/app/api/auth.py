@@ -13,7 +13,7 @@ from app.deps import get_current_user
 from app.middleware.rate_limit import limit_auth_endpoints
 from app.models.session import Session as AuthSession
 from app.models.user import User
-from app.schemas.auth import LoginRequest, RegisterRequest, UserPublic
+from app.schemas.auth import LoginRequest, RegisterRequest, SettingsUpdate, UserPublic
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -42,6 +42,7 @@ def register(body: RegisterRequest, db: DbSession = Depends(get_db)) -> User:
         email=str(body.email),
         password_hash=hash_password(body.password),
         display_name=body.display_name,
+        timezone=body.timezone or "UTC",
     )
     db.add(user)
     try:
@@ -95,4 +96,25 @@ def logout(request: Request, response: Response, db: DbSession = Depends(get_db)
 
 @router.get("/me", response_model=UserPublic)
 def me(current_user: User = Depends(get_current_user)) -> User:
+    return current_user
+
+
+@router.patch("/me", response_model=UserPublic)
+def update_settings(
+    body: SettingsUpdate,
+    db: DbSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if current_user.is_demo:
+        # Shared account. Nobody gets to move its timezone or goal on everyone else.
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The demo account's settings are locked",
+        )
+    for field, value in body.model_dump(exclude_unset=True).items():
+        if value is None and field != "display_name":
+            continue
+        setattr(current_user, field, value)
+    db.commit()
+    db.refresh(current_user)
     return current_user

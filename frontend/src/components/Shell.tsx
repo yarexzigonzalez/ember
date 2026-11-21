@@ -7,7 +7,10 @@ import { api } from '@/lib/api'
 import { useSession } from '@/lib/session'
 import { cn } from '@/lib/utils'
 
-const nav = [{ to: '/app', label: 'Pipeline' }]
+const nav = [
+  { to: '/app', label: 'Pipeline' },
+  { to: '/app/ghost', label: 'Ghost Radar' },
+]
 
 export function Shell({ children }: { children: ReactNode }) {
   const session = useSession()

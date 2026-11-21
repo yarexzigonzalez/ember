@@ -7,6 +7,7 @@ import { Ghost } from '@/pages/Ghost'
 import { Landing } from '@/pages/Landing'
 import { Login } from '@/pages/Login'
 import { Pipeline } from '@/pages/Pipeline'
+import { Pulse } from '@/pages/Pulse'
 import { Settings } from '@/pages/Settings'
 import { Signup } from '@/pages/Signup'
 
@@ -29,6 +30,7 @@ export default function App() {
       <Route path="/demo" element={<DemoEntry />} />
       <Route path="/app" element={<AppLayout />}>
         <Route index element={<Pipeline />} />
+        <Route path="pulse" element={<Pulse />} />
         <Route path="ghost" element={<Ghost />} />
         <Route path="settings" element={<Settings />} />
       </Route>

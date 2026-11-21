@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.analytics import router as analytics_router
 from app.api.applications import router as applications_router
 from app.api.auth import router as auth_router
 from app.api.extract import router as extract_router
@@ -41,4 +42,5 @@ api.include_router(applications_router)
 api.include_router(extract_router)
 api.include_router(ghost_router)
 api.include_router(sprint_router)
+api.include_router(analytics_router)
 app.include_router(api)
